@@ -10,7 +10,7 @@ contract TradeOperations {
 
     IERC20 private token;
 
-    uint256 public orderExpiry = 1 days; //Every order will get expired after 1 day
+    uint256 public orderExpiry = 60 * 60 * 24; //Every order will get expired after 1 day
 
     // EVENTS
     event OrderPlaced(
@@ -72,6 +72,14 @@ contract TradeOperations {
         _;
     }
 
+    modifier isDeadlinePassed(uint _orderId) {
+        require(
+            orderIdtoOrder[_orderId].deadline > block.timestamp &&
+                block.timestamp > orderIdtoOrder[_orderId].timestamp,'Deadline has passed'
+        );
+        _;
+    }
+
     // STRUCTS
     struct Order {
         OrderTypes orderType;
@@ -81,6 +89,7 @@ contract TradeOperations {
         uint256 price;
         uint256 amount;
         uint256 timestamp;
+        uint256 deadline;
     }
 
     struct Bid {
@@ -156,7 +165,8 @@ contract TradeOperations {
             _numberOfTokens,
             _price,
             _amount,
-            block.timestamp
+            block.timestamp,
+            block.timestamp + orderExpiry
         );
 
         emit OrderPlaced(
@@ -180,6 +190,7 @@ contract TradeOperations {
         sanityCheck(_numberOfTokens, _price)
         orderExists(msg.sender)
         bidExists(msg.sender)
+        isDeadlinePassed(_orderId)
     {
         require(
             orderIdtoOrder[_orderId].numberOfTokens == _numberOfTokens,
@@ -205,12 +216,13 @@ contract TradeOperations {
     function executeTrade(uint256 _orderId, uint256 _index)
         external
         orderIdExists(_orderId)
+        isDeadlinePassed(_orderId)
     {
         require(
             usersMapping[msg.sender].user == msg.sender,
             "You haven't created this order"
         );
-        
+
         OrderTypes _orderType = orderIdtoOrder[_orderId].orderType;
 
         Bid[] memory bidArr = orderIdToBidArray[_orderId];
