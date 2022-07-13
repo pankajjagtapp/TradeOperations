@@ -4,6 +4,9 @@ pragma solidity ^0.8.8;
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+/// @title P2P Trade Operations
+/// @author Pankaj Jagtap
+
 contract TradeOperations {
     using Counters for Counters.Counter;
     Counters.Counter public orderId;
@@ -19,7 +22,8 @@ contract TradeOperations {
         address indexed user,
         uint256 numberOfTokens,
         uint256 price,
-        uint256 timestamp
+        uint256 timestamp,
+        uint256 deadline
     );
 
     event BidPlaced(
@@ -72,10 +76,11 @@ contract TradeOperations {
         _;
     }
 
-    modifier isDeadlinePassed(uint _orderId) {
+    modifier isDeadlinePassed(uint256 _orderId) {
         require(
             orderIdtoOrder[_orderId].deadline > block.timestamp &&
-                block.timestamp > orderIdtoOrder[_orderId].timestamp,'Deadline has passed'
+                block.timestamp > orderIdtoOrder[_orderId].timestamp,
+            "Deadline has passed"
         );
         _;
     }
@@ -161,6 +166,7 @@ contract TradeOperations {
         } else {
             token.transferFrom(msg.sender, address(this), _numberOfTokens);
         }
+        uint _deadline = block.timestamp + orderExpiry;
 
         orderIdtoOrder[_orderId] = Order(
             _orderType,
@@ -170,7 +176,7 @@ contract TradeOperations {
             _price,
             _amount,
             block.timestamp,
-            block.timestamp + orderExpiry
+            _deadline
         );
 
         emit OrderPlaced(
@@ -179,7 +185,8 @@ contract TradeOperations {
             msg.sender,
             _numberOfTokens,
             _price,
-            block.timestamp
+            block.timestamp,
+            _deadline
         );
     }
 
