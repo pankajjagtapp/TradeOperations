@@ -118,6 +118,8 @@ contract TradeOperations {
     }
 
     // HELPER FUNCTIONS
+    // Buy 10,000 tokens at 1000 tokensPerEther
+    // Price = 10 token per ether
     function calculatePrice(uint256 _numberOfTokens, uint256 _tokensPerEther)
         public
         pure
@@ -126,12 +128,14 @@ contract TradeOperations {
         _price = (1 ether / _tokensPerEther) * _numberOfTokens;
     }
 
+    // Buy 10,000 tokens at 10 tokens per eth
+    // Amount = 1000 ether
     function calculateAmount(uint256 _numberOfTokens, uint256 _price)
         public
         pure
         returns (uint256 _amount)
     {
-        _amount = _numberOfTokens * _price;
+        _amount = _numberOfTokens / _price;
     }
 
     // MAIN FUNCTIONS
